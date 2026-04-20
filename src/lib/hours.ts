@@ -146,3 +146,50 @@ export function parseYMD(ymd: string): Date {
   const [y, m, d] = ymd.split("-").map(Number);
   return new Date(y, m - 1, d);
 }
+
+/**
+ * Zona horaria oficial de los laboratorios. Todos los cálculos de
+ * "hoy", "mañana", etc. deben usar esta TZ — no la del runtime.
+ * Vercel ejecuta funciones en UTC; cerca de medianoche CDMX, `new Date()`
+ * devolvería el día siguiente y los cálculos de "citas de hoy" fallarían.
+ *
+ * TODO: si se soporta multi-país, mover a lab.timezone.
+ */
+export const LAB_TIMEZONE = "America/Mexico_City";
+
+/**
+ * "Hoy" en formato YYYY-MM-DD, calculado en la zona horaria del lab.
+ */
+export function todayYMDInLabTz(
+  now: Date = new Date(),
+  timeZone: string = LAB_TIMEZONE,
+): string {
+  // Intl.DateTimeFormat con `en-CA` devuelve YYYY-MM-DD nativo.
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(now);
+}
+
+/**
+ * Fecha actual como objeto Date interpretado en la TZ del lab.
+ * Útil para cálculos que necesitan operar en "hoy local" en lugar de UTC.
+ */
+export function nowInLabTz(
+  now: Date = new Date(),
+  timeZone: string = LAB_TIMEZONE,
+): Date {
+  const ymd = todayYMDInLabTz(now, timeZone);
+  const hhmm = new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).format(now);
+  const [y, m, d] = ymd.split("-").map(Number);
+  const [hh, mm, ss] = hhmm.split(":").map(Number);
+  return new Date(y, m - 1, d, hh, mm, ss);
+}

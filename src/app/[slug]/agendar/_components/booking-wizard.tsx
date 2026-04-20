@@ -73,13 +73,17 @@ export function BookingWizard({
             "Ese horario acaba de ocuparse. Por favor selecciona otro."
           );
           setStep(2);
+        } else if (result.error === "rate_limited") {
+          setSubmitError(
+            "Has intentado agendar demasiadas veces. Espera unos minutos e intenta de nuevo."
+          );
         } else {
           setSubmitError("No pudimos crear tu cita. Intenta de nuevo.");
         }
         return;
       }
 
-      router.push(`/${slug}/confirmacion/${result.appointmentId}`);
+      router.push(result.redirectPath);
     });
   }
 

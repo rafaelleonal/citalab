@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/db";
 import { labs, type WeeklyHours } from "@/db/schema";
-import { requireLab } from "@/lib/auth-helpers";
+import { requireLabAdmin } from "@/lib/auth-helpers";
 
 const phoneRegex = /^(?:\+?52\s?)?(?:\d[\s-]?){10}$/;
 const timeRegex = /^\d{2}:\d{2}$/;
@@ -51,13 +51,15 @@ const prefsSchema = z.object({
 
 export type UpdateResult =
   | { ok: true }
-  | { ok: false; error: "invalid_input" | "no_open_day" };
+  | { ok: false; error: "invalid_input" | "no_open_day" | "not_admin" };
 
 export async function updateLabInfo(raw: unknown): Promise<UpdateResult> {
   const parsed = infoSchema.safeParse(raw);
   if (!parsed.success) return { ok: false, error: "invalid_input" };
 
-  const lab = await requireLab();
+  const auth = await requireLabAdmin();
+  if (!auth.ok) return { ok: false, error: "not_admin" };
+  const lab = auth.lab;
 
   await db
     .update(labs)
@@ -83,7 +85,9 @@ export async function updateLabHours(raw: unknown): Promise<UpdateResult> {
   );
   if (!hasAny) return { ok: false, error: "no_open_day" };
 
-  const lab = await requireLab();
+  const auth = await requireLabAdmin();
+  if (!auth.ok) return { ok: false, error: "not_admin" };
+  const lab = auth.lab;
 
   await db
     .update(labs)
@@ -105,7 +109,9 @@ export async function updateLabPreferences(
   const parsed = prefsSchema.safeParse(raw);
   if (!parsed.success) return { ok: false, error: "invalid_input" };
 
-  const lab = await requireLab();
+  const auth = await requireLabAdmin();
+  if (!auth.ok) return { ok: false, error: "not_admin" };
+  const lab = auth.lab;
 
   await db
     .update(labs)

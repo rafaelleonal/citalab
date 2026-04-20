@@ -10,6 +10,7 @@ import {
   time,
   jsonb,
   primaryKey,
+  index,
 } from "drizzle-orm/pg-core";
 
 export type WeeklyHours = {
@@ -119,3 +120,23 @@ export type NewAppointmentService = typeof appointmentServices.$inferInsert;
 
 export type PackageItem = typeof packageItems.$inferSelect;
 export type NewPackageItem = typeof packageItems.$inferInsert;
+
+/**
+ * Rate limit: una fila por intento. Se limpia periódicamente.
+ * `key` = identificador del bucket (ej. `create-appt:ip:1.2.3.4`,
+ *         `create-appt:slug:santa-lucia`).
+ */
+export const rateLimitHits = pgTable(
+  "rate_limit_hits",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    key: text("key").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    keyCreatedIdx: index("rate_limit_hits_key_created_idx").on(
+      table.key,
+      table.createdAt,
+    ),
+  }),
+);

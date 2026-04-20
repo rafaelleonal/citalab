@@ -4,7 +4,7 @@ import { and, asc, desc, eq, gte, inArray, lt, lte } from "drizzle-orm";
 import { db } from "@/db";
 import { appointments, appointmentServices, services } from "@/db/schema";
 import { requireLab } from "@/lib/auth-helpers";
-import { formatDateYMD, parseYMD } from "@/lib/hours";
+import { formatDateYMD, nowInLabTz, parseYMD } from "@/lib/hours";
 import { CitasView } from "./_components/citas-view";
 import type { AppointmentRow } from "./_components/appointments-table";
 import type { ServiceOption } from "./_components/manual-appointment-dialog";
@@ -19,7 +19,9 @@ export default async function DashboardPage({
   const lab = await requireLab();
   const sp = await searchParams;
 
-  const today = new Date();
+  // Calculado en TZ MX (B1): `new Date()` en Vercel es UTC y cerca de
+  // medianoche devolvería el día siguiente para un lab en CDMX.
+  const today = nowInLabTz();
   const todayYMD = formatDateYMD(today);
   const tomorrowYMD = formatDateYMD(addDays(today, 1));
   const weekEndYMD = formatDateYMD(addDays(today, 6));

@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { and, asc, eq, gte, ne } from "drizzle-orm";
 import { db } from "@/db";
 import { labs, services, appointments } from "@/db/schema";
-import { formatDateYMD } from "@/lib/hours";
+import { todayYMDInLabTz } from "@/lib/hours";
 import { BookingWizard } from "./_components/booking-wizard";
 
 export default async function AgendarPage({
@@ -29,7 +29,7 @@ export default async function AgendarPage({
     .where(and(eq(services.labId, lab.id), eq(services.active, true)))
     .orderBy(asc(services.name));
 
-  const today = formatDateYMD(new Date());
+  const today = todayYMDInLabTz();
 
   const takenAppointments = await db
     .select({

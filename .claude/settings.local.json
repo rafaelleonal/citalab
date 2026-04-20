@@ -44,7 +44,13 @@
       "Bash(curl -s http://localhost:3000)",
       "Bash(curl -s -I http://localhost:3000/sign-in)",
       "Bash(curl -s -I http://localhost:3000/sign-up)",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/)"
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/)",
+      "Bash(git -C /Users/rafaelleon/Desktop/Developer/lab-citas check-ignore -v .env.local)",
+      "Bash(git -C /Users/rafaelleon/Desktop/Developer/lab-citas ls-files)",
+      "Bash(grep -E \"^\\(tsx|ts-node\\)$\")",
+      "Bash(node --experimental-strip-types --no-warnings --env-file=.env.local scripts/check-migrations.ts)",
+      "Bash(node --experimental-strip-types --no-warnings --env-file=.env.local scripts/bootstrap-migrations.ts 0000_acoustic_toro 0001_tearful_scarlet_witch)",
+      "Bash(node --experimental-strip-types --no-warnings --env-file=.env.local -e ' *)"
     ]
   }
 }

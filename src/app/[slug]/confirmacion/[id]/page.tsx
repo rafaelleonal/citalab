@@ -12,6 +12,13 @@ import {
   appointmentServices,
 } from "@/db/schema";
 import { formatTime12h, parseYMD } from "@/lib/hours";
+import { verifyAppointmentToken } from "@/lib/confirmation-token";
+
+// No cachear ni permitir robots: página con PII.
+export const dynamic = "force-dynamic";
+export const metadata = {
+  robots: { index: false, follow: false, nocache: true },
+};
 
 function formatMxPhone(raw: string | null | undefined): string {
   if (!raw) return "";
@@ -62,10 +69,17 @@ function buildIcs(params: {
 
 export default async function ConfirmacionPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string; id: string }>;
+  searchParams: Promise<{ t?: string }>;
 }) {
   const { slug, id } = await params;
+  const { t } = await searchParams;
+
+  // Verificar token HMAC antes de cualquier query: sin token válido,
+  // respondemos 404 para no filtrar si la cita existe o no (C1).
+  if (!verifyAppointmentToken(id, t)) notFound();
 
   const [lab] = await db.select().from(labs).where(eq(labs.slug, slug)).limit(1);
   if (!lab) notFound();

@@ -10,8 +10,8 @@ import {
   packageItems,
   services,
 } from "@/db/schema";
-import { requireLab } from "@/lib/auth-helpers";
-import { formatDateYMD } from "@/lib/hours";
+import { requireLabAdmin } from "@/lib/auth-helpers";
+import { todayYMDInLabTz } from "@/lib/hours";
 
 const serviceSchema = z.object({
   name: z.string().trim().min(2).max(120),
@@ -41,7 +41,8 @@ type ServiceResult =
         | "invalid_input"
         | "not_found"
         | "has_future_appointments"
-        | "missing_instructions";
+        | "missing_instructions"
+        | "not_admin";
       futureCount?: number;
     };
 
@@ -59,7 +60,9 @@ export async function createService(raw: unknown): Promise<ServiceResult> {
   const err = validateInstructions(parsed.data);
   if (err) return err;
 
-  const lab = await requireLab();
+  const auth = await requireLabAdmin();
+  if (!auth.ok) return { ok: false, error: "not_admin" };
+  const lab = auth.lab;
 
   const [created] = await db
     .insert(services)
@@ -94,7 +97,9 @@ export async function updateService(
   const err = validateInstructions(parsed.data);
   if (err) return err;
 
-  const lab = await requireLab();
+  const auth = await requireLabAdmin();
+  if (!auth.ok) return { ok: false, error: "not_admin" };
+  const lab = auth.lab;
 
   const result = await db
     .update(services)
@@ -123,8 +128,13 @@ export async function updateService(
 
 export async function toggleServiceActive(
   serviceId: string
-): Promise<{ ok: true; active: boolean } | { ok: false; error: "not_found" }> {
-  const lab = await requireLab();
+): Promise<
+  | { ok: true; active: boolean }
+  | { ok: false; error: "not_found" | "not_admin" }
+> {
+  const auth = await requireLabAdmin();
+  if (!auth.ok) return { ok: false, error: "not_admin" };
+  const lab = auth.lab;
 
   const [current] = await db
     .select({ active: services.active })
@@ -146,7 +156,9 @@ export async function toggleServiceActive(
 }
 
 export async function deleteService(serviceId: string): Promise<ServiceResult> {
-  const lab = await requireLab();
+  const auth = await requireLabAdmin();
+  if (!auth.ok) return { ok: false, error: "not_admin" };
+  const lab = auth.lab;
 
   const [existing] = await db
     .select({ id: services.id })
@@ -156,7 +168,7 @@ export async function deleteService(serviceId: string): Promise<ServiceResult> {
 
   if (!existing) return { ok: false, error: "not_found" };
 
-  const todayYMD = formatDateYMD(new Date());
+  const todayYMD = todayYMDInLabTz();
 
   const futureRows = await db
     .select({ appointmentId: appointmentServices.appointmentId })
@@ -230,7 +242,8 @@ type PackageResult =
         | "invalid_input"
         | "not_found"
         | "invalid_items"
-        | "has_future_appointments";
+        | "has_future_appointments"
+        | "not_admin";
       futureCount?: number;
     };
 
@@ -256,7 +269,9 @@ export async function createPackage(raw: unknown): Promise<PackageResult> {
   const parsed = packageSchema.safeParse(raw);
   if (!parsed.success) return { ok: false, error: "invalid_input" };
 
-  const lab = await requireLab();
+  const auth = await requireLabAdmin();
+  if (!auth.ok) return { ok: false, error: "not_admin" };
+  const lab = auth.lab;
 
   const validItems = await validateItemIds(lab.id, parsed.data.itemIds);
   if (!validItems) return { ok: false, error: "invalid_items" };
@@ -293,7 +308,9 @@ export async function updatePackage(
   const parsed = packageSchema.safeParse(raw);
   if (!parsed.success) return { ok: false, error: "invalid_input" };
 
-  const lab = await requireLab();
+  const auth = await requireLabAdmin();
+  if (!auth.ok) return { ok: false, error: "not_admin" };
+  const lab = auth.lab;
 
   const [pkg] = await db
     .select({ id: services.id })
@@ -336,7 +353,9 @@ export async function updatePackage(
 export async function deletePackage(
   packageId: string
 ): Promise<PackageResult> {
-  const lab = await requireLab();
+  const auth = await requireLabAdmin();
+  if (!auth.ok) return { ok: false, error: "not_admin" };
+  const lab = auth.lab;
 
   const [pkg] = await db
     .select({ id: services.id })
@@ -351,7 +370,7 @@ export async function deletePackage(
     .limit(1);
   if (!pkg) return { ok: false, error: "not_found" };
 
-  const todayYMD = formatDateYMD(new Date());
+  const todayYMD = todayYMDInLabTz();
 
   const futureRows = await db
     .select({ appointmentId: appointmentServices.appointmentId })
