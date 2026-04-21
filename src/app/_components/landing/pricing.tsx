@@ -3,134 +3,19 @@ import { Badge } from "@/components/ui/badge";
 import { Eyebrow, H2 } from "./primitives";
 import { CheckIcon } from "./icons";
 
-function PriceCard({
-  children,
-  featured = false,
-}: {
-  children: React.ReactNode;
-  featured?: boolean;
-}) {
-  return (
-    <div
-      className={
-        featured
-          ? "relative flex flex-col rounded-[16px] border-[0.5px] border-ink bg-ink p-7 text-white"
-          : "relative flex flex-col rounded-[16px] border-[0.5px] border-line bg-white p-7 text-ink"
-      }
-    >
-      {children}
-    </div>
-  );
-}
-
-function PriceHeader({
-  plan,
-  title,
-  children,
-  featured = false,
-}: {
-  plan: string;
-  title: string;
-  children: React.ReactNode;
-  featured?: boolean;
-}) {
-  return (
-    <>
-      <div
-        className={`mb-3.5 font-mono text-[11px] uppercase tracking-[0.8px] ${
-          featured ? "text-white/55" : "text-ink-mute"
-        }`}
-      >
-        {plan}
-      </div>
-      <h3 className="m-0 mb-1 text-[26px] font-semibold tracking-[-0.5px]">
-        {title}
-      </h3>
-      <div
-        className={`mb-4 min-h-[40px] text-[13px] ${
-          featured ? "text-white/65" : "text-ink-sub"
-        }`}
-      >
-        {children}
-      </div>
-    </>
-  );
-}
-
-function PriceAmount({
-  amount,
-  featured = false,
-}: {
-  amount: string;
-  featured?: boolean;
-}) {
-  return (
-    <>
-      <div className="text-[46px] font-semibold leading-none tracking-[-1.6px] tabular-nums">
-        <sup
-          className={`mr-[3px] text-[16px] font-medium tracking-normal ${
-            featured ? "text-white/50" : "text-ink-mute"
-          }`}
-          style={{ top: "-16px" }}
-        >
-          $
-        </sup>
-        {amount}
-      </div>
-      <div
-        className={`mb-6 mt-1 text-[13px] ${
-          featured ? "text-white/55" : "text-ink-mute"
-        }`}
-      >
-        MXN / mes · IVA incluido
-      </div>
-    </>
-  );
-}
-
-function PriceLi({
-  children,
-  featured = false,
-}: {
-  children: React.ReactNode;
-  featured?: boolean;
-}) {
-  return (
-    <li
-      className={`flex items-start gap-2.5 py-1.5 text-[13.5px] ${
-        featured ? "text-white/80" : "text-ink-sub"
-      }`}
-    >
-      <span className="mt-[3px] flex-shrink-0">
-        <CheckIcon className={featured ? "text-leaf-bg" : "text-leaf"} />
-      </span>
-      <span>{children}</span>
-    </li>
-  );
-}
-
-const INICIO_FEATURES = [
+const CITALAB_FEATURES = [
   "Página pública citalab.mx/slug",
-  "Hasta 200 citas / mes",
-  "Catálogo ilimitado de estudios",
-  "1 usuario del dashboard",
-  "Soporte por email",
-];
-
-const PROFESIONAL_FEATURES = [
-  { t: "Todo lo de Inicio" },
-  { t: "Citas ilimitadas", bold: true },
-  { t: "Recordatorios por WhatsApp" },
-  { t: "5 usuarios del dashboard" },
-  { t: "Reportes de ingresos y asistencia" },
-  { t: "Soporte prioritario" },
+  "Citas ilimitadas",
+  "Catálogo ilimitado de estudios y paquetes",
+  "Confirmación instantánea con .ics",
+  "Dashboard para toda tu recepción",
+  "Soporte en español por WhatsApp",
 ];
 
 const CADENA_FEATURES = [
-  "Todo lo de Profesional",
+  "Todo lo de CitaLab",
   "Sucursales ilimitadas",
   "Dominio propio (lab.com/agendar)",
-  "Usuarios ilimitados",
   "Account manager dedicado",
 ];
 
@@ -147,81 +32,111 @@ export function LandingPricing() {
           </p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          <PriceCard>
-            <PriceHeader plan="Inicio" title="Para laboratorios pequeños">
-              Un solo lab, hasta 200 citas al mes.
-            </PriceHeader>
-            <PriceAmount amount="490" />
-            <ul className="mb-6 list-none space-y-0 p-0">
-              {INICIO_FEATURES.map((t) => (
-                <PriceLi key={t}>{t}</PriceLi>
-              ))}
-            </ul>
-            <Link
-              href="/sign-up"
-              className="mt-auto inline-flex h-10 w-full items-center justify-center rounded-lg border-[0.5px] border-line-strong bg-white px-4 text-[14px] font-medium text-ink"
-            >
-              Empezar gratis 14 días
-            </Link>
-          </PriceCard>
-
-          <PriceCard featured>
+        {/* Card principal + card secundaria */}
+        <div className="mx-auto grid max-w-[900px] gap-4 md:grid-cols-[1.4fr_1fr] md:items-stretch">
+          {/* Card principal: CitaLab */}
+          <div className="relative flex flex-col rounded-[16px] border-[0.5px] border-ink bg-ink p-7 text-white">
+            {/* Badge lanzamiento */}
             <Badge
               variant="outline"
-              className="absolute right-[18px] top-[18px] h-auto border-[0.5px] border-white/20 bg-white/10 px-2 py-[3px] font-mono text-[11px] uppercase tracking-[0.6px] text-white"
+              className="absolute left-1/2 top-0 h-auto -translate-x-1/2 -translate-y-1/2 border-[0.5px] border-brand-accent/30 bg-brand-accent px-3 py-[5px] font-mono text-[10.5px] uppercase tracking-[0.6px] text-white"
             >
-              Popular
+              Precio de lanzamiento · sube a $990 el 1 jul 2026
             </Badge>
-            <PriceHeader
-              plan="Profesional"
-              title="Para laboratorios en crecimiento"
-              featured
-            >
-              Citas ilimitadas, WhatsApp, reportes.
-            </PriceHeader>
-            <PriceAmount amount="990" featured />
-            <ul className="mb-6 list-none space-y-0 p-0">
-              {PROFESIONAL_FEATURES.map((it) => (
-                <PriceLi key={it.t} featured>
-                  {it.bold ? (
-                    <strong className="text-white">{it.t}</strong>
-                  ) : (
-                    it.t
-                  )}
-                </PriceLi>
+
+            <div className="mb-3.5 mt-2 font-mono text-[11px] uppercase tracking-[0.8px] text-white/55">
+              CitaLab
+            </div>
+            <h3 className="m-0 mb-1 text-[28px] font-semibold tracking-[-0.5px]">
+              Todo lo que tu laboratorio necesita.
+            </h3>
+            <p className="mb-5 text-[13.5px] text-white/65">
+              Un solo plan, pensado para labs independientes.
+            </p>
+
+            <div className="flex items-baseline gap-2">
+              <div className="text-[52px] font-semibold leading-none tracking-[-1.8px] tabular-nums">
+                <sup
+                  className="mr-[3px] text-[18px] font-medium tracking-normal text-white/50"
+                  style={{ top: "-20px" }}
+                >
+                  $
+                </sup>
+                490
+              </div>
+              <span className="text-[14px] font-medium text-white/55 line-through tabular-nums">
+                $990
+              </span>
+            </div>
+            <div className="mb-6 mt-1 text-[13px] text-white/55">
+              MXN / mes · IVA incluido
+            </div>
+
+            <ul className="mb-7 grid list-none gap-y-0 p-0 md:grid-cols-2 md:gap-x-4">
+              {CITALAB_FEATURES.map((t) => (
+                <li
+                  key={t}
+                  className="flex items-start gap-2.5 py-1.5 text-[13.5px] text-white/80"
+                >
+                  <span className="mt-[3px] flex-shrink-0">
+                    <CheckIcon className="text-leaf-bg" />
+                  </span>
+                  <span>{t}</span>
+                </li>
               ))}
             </ul>
+
             <Link
               href="/sign-up"
-              className="mt-auto inline-flex h-10 w-full items-center justify-center rounded-lg bg-white px-4 text-[14px] font-medium text-ink"
+              className="mt-auto inline-flex h-12 w-full items-center justify-center rounded-lg bg-white px-4 text-[15px] font-medium text-ink"
             >
-              Empezar gratis 14 días
+              Empezar prueba gratis 14 días
             </Link>
-          </PriceCard>
+            <p className="mt-3 text-center text-[12px] text-white/55">
+              Sin tarjeta de crédito
+            </p>
+          </div>
 
-          <PriceCard>
-            <PriceHeader plan="Cadena" title="Para múltiples sucursales">
+          {/* Card secundaria: Cadena */}
+          <div className="relative flex flex-col rounded-[16px] border-[0.5px] border-line bg-white p-7 text-ink">
+            <div className="mb-3.5 font-mono text-[11px] uppercase tracking-[0.8px] text-ink-mute">
+              Cadena
+            </div>
+            <h3 className="m-0 mb-1 text-[22px] font-semibold tracking-[-0.4px]">
+              Para múltiples sucursales.
+            </h3>
+            <p className="mb-4 text-[13px] text-ink-sub">
               Varios laboratorios con marca unificada.
-            </PriceHeader>
+            </p>
+
             <div className="text-[28px] font-semibold tracking-[-0.5px] tabular-nums">
               Hablemos
             </div>
-            <div className="mb-6 mt-1 text-[13px] text-ink-mute">
+            <div className="mb-5 mt-1 text-[13px] text-ink-mute">
               Precio por sucursal
             </div>
+
             <ul className="mb-6 list-none space-y-0 p-0">
               {CADENA_FEATURES.map((t) => (
-                <PriceLi key={t}>{t}</PriceLi>
+                <li
+                  key={t}
+                  className="flex items-start gap-2.5 py-1.5 text-[13px] text-ink-sub"
+                >
+                  <span className="mt-[3px] flex-shrink-0">
+                    <CheckIcon />
+                  </span>
+                  <span>{t}</span>
+                </li>
               ))}
             </ul>
+
             <a
-              href="mailto:hola@citalab.mx"
+              href="mailto:hola@citalab.mx?subject=Cadena%20de%20laboratorios"
               className="mt-auto inline-flex h-10 w-full items-center justify-center rounded-lg border-[0.5px] border-line-strong bg-white px-4 text-[14px] font-medium text-ink"
             >
-              Agendar demo
+              Contactar ventas
             </a>
-          </PriceCard>
+          </div>
         </div>
 
         <div className="mt-6 text-center text-[13px] text-ink-mute">

@@ -8,6 +8,10 @@ import { createAppointmentSchema } from "@/lib/schemas";
 import { validateSlotAgainstLab } from "@/lib/slot-validation";
 import { signAppointmentToken } from "@/lib/confirmation-token";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
+import {
+  isSubscriptionActive,
+  resolveSubscriptionState,
+} from "@/lib/subscription";
 
 export type CreateAppointmentInput = {
   slug: string;
@@ -25,6 +29,7 @@ export type CreateAppointmentResult =
       ok: false;
       error:
         | "lab_not_found"
+        | "lab_unavailable"
         | "no_services"
         | "slot_taken"
         | "invalid_services"
@@ -65,18 +70,33 @@ export async function createAppointment(
   });
   if (!slugRl.ok) return { ok: false, error: "rate_limited" };
 
-  // 3. Resolver lab por slug
+  // 3. Resolver lab por slug (+ verificar suscripción activa)
   const [lab] = await db
     .select({
       id: labs.id,
       hours: labs.hours,
       slotMinutes: labs.slotMinutes,
       minLeadHours: labs.minLeadHours,
+      subscriptionStatus: labs.subscriptionStatus,
+      trialEndsAt: labs.trialEndsAt,
+      currentPeriodEnd: labs.currentPeriodEnd,
     })
     .from(labs)
     .where(eq(labs.slug, input.slug))
     .limit(1);
   if (!lab) return { ok: false, error: "lab_not_found" };
+
+  // Si la suscripción no está activa, el lab no puede recibir citas.
+  // Reusamos los helpers pasando solo los campos relevantes.
+  const labForCheck = {
+    subscriptionStatus: lab.subscriptionStatus,
+    trialEndsAt: lab.trialEndsAt,
+    currentPeriodEnd: lab.currentPeriodEnd,
+  } as Parameters<typeof isSubscriptionActive>[0];
+  labForCheck.subscriptionStatus = resolveSubscriptionState(labForCheck);
+  if (!isSubscriptionActive(labForCheck)) {
+    return { ok: false, error: "lab_unavailable" };
+  }
 
   // 4. Validar que el slot caiga dentro del horario + lead time (C2)
   const slotCheck = validateSlotAgainstLab({

@@ -3,6 +3,7 @@ import { ArrowIcon } from "./icons";
 import { HeroMock } from "./hero-mock";
 
 const TRUST_POINTS = [
+  "Disponible 24/7 sin llamadas",
   "Sin tarjeta de crédito",
   "Montaje en 10 min",
   "Soporte en español",

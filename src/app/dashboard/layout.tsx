@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { UserButton } from "@clerk/nextjs";
 import { Bell, ExternalLink, Search } from "lucide-react";
 import { Logo } from "@/components/logo";
@@ -12,8 +14,11 @@ import {
 } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/sonner";
 import { requireLab } from "@/lib/auth-helpers";
+import { isSubscriptionActive } from "@/lib/subscription";
 import { SidebarNav } from "./_components/sidebar-nav";
 import { DashboardBreadcrumb } from "./_components/dashboard-breadcrumb";
+import { PlanChip } from "./_components/plan-chip";
+import { TrialBanner } from "./_components/trial-banner";
 
 export default async function DashboardLayout({
   children,
@@ -21,6 +26,17 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const lab = await requireLab();
+
+  // Si la suscripción no está activa, forzamos a que solo puedan navegar
+  // a /dashboard/facturacion para activar el plan. `requireLab` ya hizo
+  // el lazy-update de `trial_expired`.
+  const hdrs = await headers();
+  const pathname = hdrs.get("x-pathname") ?? "";
+  const isOnBillingPage = pathname.startsWith("/dashboard/facturacion");
+
+  if (!isSubscriptionActive(lab) && !isOnBillingPage) {
+    redirect("/dashboard/facturacion");
+  }
 
   return (
     <SidebarProvider>
@@ -47,6 +63,7 @@ export default async function DashboardLayout({
               </p>
             </div>
           </button>
+          <PlanChip lab={lab} />
         </SidebarHeader>
 
         <SidebarContent>
@@ -62,6 +79,7 @@ export default async function DashboardLayout({
       </Sidebar>
 
       <SidebarInset>
+        <TrialBanner lab={lab} />
         <header className="sticky top-0 z-10 flex h-14 items-center gap-3 border-b border-border bg-background/80 px-5 backdrop-blur md:px-6">
           <SidebarTrigger className="md:hidden" />
           <DashboardBreadcrumb />

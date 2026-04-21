@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   pgTable,
   uuid,
@@ -12,6 +13,26 @@ import {
   primaryKey,
   index,
 } from "drizzle-orm/pg-core";
+
+/**
+ * Estados de suscripción del lab. Único source-of-truth para
+ * "¿puede usar la app?". Se actualiza vía webhook de Stripe o
+ * por lazy-check cuando el trial vence.
+ *
+ * - trialing:        en prueba, dentro del plazo
+ * - active:          suscripción pagada al día
+ * - past_due:        pago falló, periodo de gracia
+ * - trial_expired:   prueba venció sin suscribirse
+ * - canceled:        el usuario canceló; accesible hasta currentPeriodEnd
+ * - incomplete:      Checkout iniciado pero no terminado
+ */
+export type SubscriptionStatus =
+  | "trialing"
+  | "active"
+  | "past_due"
+  | "trial_expired"
+  | "canceled"
+  | "incomplete";
 
 export type WeeklyHours = {
   monday: { open: string; close: string } | null;
@@ -33,6 +54,18 @@ export const labs = pgTable("labs", {
   slotMinutes: integer("slot_minutes").default(30).notNull(),
   minLeadHours: integer("min_lead_hours").default(0).notNull(),
   clerkOrgId: text("clerk_org_id").notNull().unique(),
+  // ── Billing / Stripe ────────────────────────────────────────────────
+  stripeCustomerId: text("stripe_customer_id").unique(),
+  stripeSubscriptionId: text("stripe_subscription_id").unique(),
+  stripePriceId: text("stripe_price_id"),
+  subscriptionStatus: text("subscription_status")
+    .$type<SubscriptionStatus>()
+    .default("trialing")
+    .notNull(),
+  trialEndsAt: timestamp("trial_ends_at")
+    .default(sql`now() + interval '14 days'`)
+    .notNull(),
+  currentPeriodEnd: timestamp("current_period_end"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

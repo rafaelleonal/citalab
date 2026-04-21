@@ -7,7 +7,9 @@ import { es } from "date-fns/locale";
 import { db } from "@/db";
 import { labs, services } from "@/db/schema";
 import { groupHoursForDisplay } from "@/lib/hours";
+import { isSubscriptionActive, resolveSubscriptionState } from "@/lib/subscription";
 import { ServicesList } from "./_components/services-list";
+import { LabPaused } from "./_components/lab-paused";
 
 function formatMxPhone(raw: string | null | undefined): string {
   if (!raw) return "";
@@ -62,6 +64,15 @@ export default async function LabLandingPage({
 
   const [lab] = await db.select().from(labs).where(eq(labs.slug, slug)).limit(1);
   if (!lab) notFound();
+
+  // Paywall: si el lab no tiene suscripción activa, mostramos la página
+  // "en pausa" en lugar de exponer el catálogo y recibir nuevas citas.
+  // `resolveSubscriptionState` cubre el caso donde el trial venció sin
+  // que el dashboard haya corrido el lazy-update.
+  lab.subscriptionStatus = resolveSubscriptionState(lab);
+  if (!isSubscriptionActive(lab)) {
+    return <LabPaused labName={lab.name} />;
+  }
 
   const labServices = await db
     .select({

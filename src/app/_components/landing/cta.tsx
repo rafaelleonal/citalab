@@ -14,21 +14,24 @@ export function LandingCta() {
             }}
           />
           <div className="relative">
-            <div className="mb-4 font-mono text-[11px] uppercase tracking-[0.8px] text-white/45">
-              Empezar
+            <div className="mb-4 inline-flex items-center gap-1.5 rounded-full border-[0.5px] border-brand-accent/40 bg-brand-accent/15 px-2.5 py-1 font-mono text-[11px] uppercase tracking-[0.8px] text-brand-accent">
+              <span className="h-1.5 w-1.5 rounded-full bg-brand-accent" />
+              Precio de lanzamiento termina el 1 jul 2026
             </div>
-            <h2 className="m-0 mx-auto max-w-[800px] text-[clamp(36px,5vw,56px)] font-semibold leading-[1.05] tracking-[-2px]">
-              Tu agenda, funcionando en una tarde.
+            <h2 className="m-0 mx-auto max-w-[820px] text-[clamp(36px,5vw,56px)] font-semibold leading-[1.05] tracking-[-2px]">
+              $490 / mes de por vida,{" "}
+              <span className="text-white/50">si entras antes de julio.</span>
             </h2>
-            <p className="mx-auto mb-9 mt-5 max-w-[520px] text-[17px] text-white/60">
+            <p className="mx-auto mb-9 mt-5 max-w-[560px] text-[17px] text-white/60">
               Configura tu laboratorio en 10 minutos. 14 días gratis, sin
-              tarjeta.
+              tarjeta. El precio con el que entres se queda contigo aunque
+              subamos a $990.
             </p>
             <Link
               href="/sign-up"
               className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-white px-5 text-[15px] font-medium text-ink"
             >
-              Crear mi página gratis
+              Empezar prueba gratis 14 días
               <ArrowIcon className="text-ink" />
             </Link>
             <div className="mt-5 text-[12px] text-white/40">

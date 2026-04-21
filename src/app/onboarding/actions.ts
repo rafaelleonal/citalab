@@ -9,6 +9,7 @@ import {
   onboardingPayloadSchema,
   type OnboardingPayload,
 } from "@/lib/schemas";
+import { TRIAL_DAYS } from "@/lib/subscription";
 
 export type { OnboardingPayload, ServiceInput } from "@/lib/schemas";
 
@@ -90,6 +91,11 @@ export async function finishOnboarding(
 
   const slug = await uniqueSlug(toSlug(payload.name));
 
+  // Trial: arranca HOY al completar onboarding, dura TRIAL_DAYS.
+  const trialEndsAt = new Date(
+    Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000,
+  );
+
   try {
     const [lab] = await db
       .insert(labs)
@@ -100,6 +106,8 @@ export async function finishOnboarding(
         phone: payload.phone || null,
         hours: payload.hours,
         clerkOrgId: orgId,
+        subscriptionStatus: "trialing",
+        trialEndsAt,
       })
       .returning({ id: labs.id });
 

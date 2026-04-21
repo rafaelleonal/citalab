@@ -22,6 +22,9 @@ export function LandingNav() {
           <a href="#precios" className="hover:text-black">
             Precios
           </a>
+          <a href="#roadmap" className="hover:text-black">
+            Roadmap
+          </a>
           <a href="#faq" className="hover:text-black">
             Preguntas
           </a>

@@ -3,7 +3,9 @@ import { and, asc, eq, gte, ne } from "drizzle-orm";
 import { db } from "@/db";
 import { labs, services, appointments } from "@/db/schema";
 import { todayYMDInLabTz } from "@/lib/hours";
+import { isSubscriptionActive, resolveSubscriptionState } from "@/lib/subscription";
 import { BookingWizard } from "./_components/booking-wizard";
+import { LabPaused } from "../_components/lab-paused";
 
 export default async function AgendarPage({
   params,
@@ -15,6 +17,11 @@ export default async function AgendarPage({
   const [lab] = await db.select().from(labs).where(eq(labs.slug, slug)).limit(1);
   if (!lab) notFound();
   if (!lab.hours) notFound();
+
+  lab.subscriptionStatus = resolveSubscriptionState(lab);
+  if (!isSubscriptionActive(lab)) {
+    return <LabPaused labName={lab.name} />;
+  }
 
   const labServices = await db
     .select({

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Calendar, FlaskConical, Settings } from "lucide-react";
+import { Calendar, CreditCard, FlaskConical, Settings } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -39,6 +39,12 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
         href: "/dashboard/configuracion",
         label: "Configuración",
         icon: Settings,
+        exact: false,
+      },
+      {
+        href: "/dashboard/facturacion",
+        label: "Facturación",
+        icon: CreditCard,
         exact: false,
       },
     ],

@@ -77,6 +77,10 @@ export function BookingWizard({
           setSubmitError(
             "Has intentado agendar demasiadas veces. Espera unos minutos e intenta de nuevo."
           );
+        } else if (result.error === "lab_unavailable") {
+          setSubmitError(
+            "Este laboratorio no está aceptando citas online en este momento."
+          );
         } else {
           setSubmitError("No pudimos crear tu cita. Intenta de nuevo.");
         }

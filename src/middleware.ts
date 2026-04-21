@@ -1,4 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 
 /**
  * Estrategia: todo es privado por default EXCEPTO rutas que coincidan
@@ -42,9 +43,16 @@ function isPublicSlugRoute(pathname: string): boolean {
 }
 
 export default clerkMiddleware(async (auth, req) => {
-  if (isAbsolutePublic(req)) return;
-  if (isPublicSlugRoute(req.nextUrl.pathname)) return;
-  await auth.protect();
+  if (!isAbsolutePublic(req) && !isPublicSlugRoute(req.nextUrl.pathname)) {
+    await auth.protect();
+  }
+
+  // Propagamos el pathname como request header para que los Server
+  // Components puedan leerlo con `headers()` (Next.js no lo expone
+  // directamente en layouts/pages).
+  const reqHeaders = new Headers(req.headers);
+  reqHeaders.set("x-pathname", req.nextUrl.pathname);
+  return NextResponse.next({ request: { headers: reqHeaders } });
 });
 
 export const config = {

@@ -5,6 +5,7 @@ import { LandingFeatures } from "./_components/landing/features";
 import { LandingFlow } from "./_components/landing/flow";
 import { LandingQuote } from "./_components/landing/quote";
 import { LandingPricing } from "./_components/landing/pricing";
+import { LandingRoadmap } from "./_components/landing/roadmap";
 import { LandingFaq } from "./_components/landing/faq";
 import { LandingCta } from "./_components/landing/cta";
 import { LandingFooter } from "./_components/landing/footer";
@@ -19,6 +20,7 @@ export default function MarketingLandingPage() {
       <LandingFlow />
       <LandingQuote />
       <LandingPricing />
+      <LandingRoadmap />
       <LandingFaq />
       <LandingCta />
       <LandingFooter />

@@ -3,11 +3,17 @@ import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { labs, type Lab } from "@/db/schema";
+import { resolveSubscriptionState } from "@/lib/subscription";
 
 /**
  * Resuelve el lab activo desde la organización de Clerk.
- * Cualquier miembro de la org puede leer datos del lab (read-only).
- * Para MUTACIONES destructivas o de configuración, usa `requireLabAdmin`.
+ *
+ * Side effect: si el estado de suscripción persistido quedó obsoleto
+ * (trial venció sin que nadie actualizara la fila), hace un UPDATE
+ * lazy a `trial_expired`. Así no necesitamos un cron.
+ *
+ * Cualquier miembro de la org puede leer datos del lab. Para MUTACIONES
+ * destructivas/configuración usa `requireLabAdmin`.
  */
 export async function requireLab(): Promise<Lab> {
   const { orgId } = await auth();
@@ -21,6 +27,17 @@ export async function requireLab(): Promise<Lab> {
 
   if (!lab) redirect("/onboarding");
 
+  // Lazy transition del estado de suscripción (no bloquea — si el UPDATE
+  // falla por concurrencia, el siguiente request lo reintenta).
+  const resolved = resolveSubscriptionState(lab);
+  if (resolved !== lab.subscriptionStatus) {
+    await db
+      .update(labs)
+      .set({ subscriptionStatus: resolved, updatedAt: new Date() })
+      .where(eq(labs.id, lab.id));
+    lab.subscriptionStatus = resolved;
+  }
+
   return lab;
 }
 
@@ -28,8 +45,6 @@ export type LabRoleError = "not_authenticated" | "not_admin";
 
 /**
  * Igual que `requireLab` pero exige rol `org:admin` en la organización.
- * Devuelve un resultado en vez de redirigir, para que las server actions
- * puedan responder con un error controlado al cliente.
  */
 export async function requireLabAdmin(): Promise<
   { ok: true; lab: Lab } | { ok: false; error: LabRoleError }
@@ -37,8 +52,6 @@ export async function requireLabAdmin(): Promise<
   const { orgId, orgRole } = await auth();
   if (!orgId) return { ok: false, error: "not_authenticated" };
 
-  // Clerk expone roles como strings tipo "org:admin", "org:member".
-  // Solo admins pueden modificar catálogo y configuración.
   if (orgRole !== "org:admin") {
     return { ok: false, error: "not_admin" };
   }
@@ -50,6 +63,15 @@ export async function requireLabAdmin(): Promise<
     .limit(1);
 
   if (!lab) return { ok: false, error: "not_authenticated" };
+
+  const resolved = resolveSubscriptionState(lab);
+  if (resolved !== lab.subscriptionStatus) {
+    await db
+      .update(labs)
+      .set({ subscriptionStatus: resolved, updatedAt: new Date() })
+      .where(eq(labs.id, lab.id));
+    lab.subscriptionStatus = resolved;
+  }
 
   return { ok: true, lab };
 }
